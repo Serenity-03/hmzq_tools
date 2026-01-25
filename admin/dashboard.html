@@ -57,19 +57,29 @@
     <div class="container">
         <h1>📊 HMZQ 流量统计看板</h1>
         
+        <div class="stat-card" style="background: #e8f8f5;">
+            <span class="stat-label">今日访问量 (Today PV)</span>
+            <span class="stat-value" id="busuanzi_today_pv">...</span>
+        </div>
+
+        <div class="stat-card" style="background: #e8f8f5;">
+            <span class="stat-label">今日访客数 (Today UV)</span>
+            <span class="stat-value" id="busuanzi_today_uv">...</span>
+        </div>
+
         <div class="stat-card">
-            <span class="stat-label">全站总访问量 (PV)</span>
-            <span class="stat-value" id="busuanzi_value_site_pv">...</span>
+            <span class="stat-label">全站总访问量 (Total PV)</span>
+            <span class="stat-value" id="busuanzi_site_pv">...</span>
         </div>
         
         <div class="stat-card">
-            <span class="stat-label">全站总访客数 (UV)</span>
-            <span class="stat-value" id="busuanzi_value_site_uv">...</span>
+            <span class="stat-label">全站总访客数 (Total UV)</span>
+            <span class="stat-value" id="busuanzi_site_uv">...</span>
         </div>
 
         <div class="stat-card">
             <span class="stat-label">当前页面访问量</span>
-            <span class="stat-value" id="busuanzi_value_page_pv">...</span>
+            <span class="stat-value" id="busuanzi_page_pv">...</span>
         </div>
 
         <h2 style="margin-top: 40px; color: #2c3e50;">📄 子页面数据快速查看</h2>
@@ -86,20 +96,15 @@
 
         <div class="note">
             <strong>📊 数据说明与限制：</strong><br>
-            1. <strong>全站数据</strong>：由不蒜子 (Busuanzi) 自动统计。<br>
-            2. <strong>今日/历史数据</strong>：当前基础版统计服务<strong>不支持</strong>显示“今日访问量”或“历史趋势图”。<br>
-            3. <strong>子页面数据</strong>：由于技术限制，无法在此看板直接读取子页面的 PV 值，请点击上方链接前往对应页面底部查看。<br>
+            1. <strong>数据来源</strong>：本站已切换至升级版不蒜子 (busuanzi.cc) 以支持今日数据统计。<br>
+            2. <strong>历史趋势</strong>：当前服务暂不支持历史每日数据图表展示。<br>
+            3. <strong>子页面数据</strong>：请点击上方链接前往对应页面底部查看。<br>
             <br>
-            <em>建议：如需查看详细的【今日访问】、【用户地域】、【历史趋势】等专业数据，建议注册并接入 <a href="https://tongji.baidu.com/" target="_blank">百度统计</a> 或 <a href="https://analytics.google.com/" target="_blank">Google Analytics</a>。</em>
+            <em>建议：如需查看详细的【用户地域】、【历史趋势】等专业数据，建议注册并接入 <a href="https://tongji.baidu.com/" target="_blank">百度统计</a> 或 <a href="https://analytics.google.com/" target="_blank">Google Analytics</a>。</em>
         </div>
     </div>
 
-    <!-- Busuanzi Script -->
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    
-    <!-- Hide elements initially to avoid flicker, Busuanzi will populate them -->
-    <span id="busuanzi_container_site_pv" style="display:none"></span>
-    <span id="busuanzi_container_site_uv" style="display:none"></span>
-    <span id="busuanzi_container_page_pv" style="display:none"></span>
+    <!-- Busuanzi Script (Updated Source) -->
+    <script src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js" defer></script>
 </body>
 </html>
