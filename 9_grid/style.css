@@ -1,0 +1,159 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 800px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+p {
+    text-align: center;
+    color: #666;
+}
+
+.game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+@media (min-width: 600px) {
+    .game-area {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+    }
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    padding-bottom: 40px; /* Space for col results */
+}
+
+.grid-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.grid-cell {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.grid-cell:focus {
+    border-color: #4a90e2;
+}
+
+/* Hide spin buttons */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+.row-result {
+    width: 80px;
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.col-results {
+    display: flex;
+    gap: 10px;
+    margin-left: 0;
+    padding-left: 2px; /* Slight adjustment */
+}
+
+.col-result {
+    width: 60px;
+    text-align: center;
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 14px;
+    padding-top: 5px;
+}
+
+.diag-results {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+}
+
+.info-panel {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 200px;
+}
+
+.highlight {
+    font-size: 18px;
+    color: #e74c3c;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#remaining-numbers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.rem-num {
+    background-color: #e2e6ea;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #357abd;
+}
+
+.best-choice {
+    color: #e74c3c;
+    font-weight: 800;
+}

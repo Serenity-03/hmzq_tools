@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仙人掌 - 概率计算器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>仙人掌 - 概率计算器</h1>
+        <p>请输入已知格子的数字 (1-9)，未知格子留空或填0。</p>
+        
+        <div class="game-area">
+            <div class="grid-container">
+                <!-- 3x3 Grid Inputs -->
+                <div class="grid-row">
+                    <input type="number" id="cell-1-1" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-1-2" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-1-3" min="0" max="9" class="grid-cell">
+                    <div class="row-result" id="res-row-1"></div>
+                </div>
+                <div class="grid-row">
+                    <input type="number" id="cell-2-1" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-2-2" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-2-3" min="0" max="9" class="grid-cell">
+                    <div class="row-result" id="res-row-2"></div>
+                </div>
+                <div class="grid-row">
+                    <input type="number" id="cell-3-1" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-3-2" min="0" max="9" class="grid-cell">
+                    <input type="number" id="cell-3-3" min="0" max="9" class="grid-cell">
+                    <div class="row-result" id="res-row-3"></div>
+                </div>
+                
+                <!-- Column Results -->
+                <div class="col-results">
+                    <div class="col-result" id="res-col-1"></div>
+                    <div class="col-result" id="res-col-2"></div>
+                    <div class="col-result" id="res-col-3"></div>
+                </div>
+
+                 <!-- Diagonal Results -->
+                 <div class="diag-results">
+                    <div class="diag-result left" id="res-diag-1">↖ \ : <span id="val-diag-1"></span></div>
+                    <div class="diag-result right" id="res-diag-2">↗ / : <span id="val-diag-2"></span></div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h3>推荐选择</h3>
+                <div id="recommendation" class="highlight"></div>
+                <h3>剩余数字</h3>
+                <div id="remaining-numbers"></div>
+                
+                <button onclick="resetGrid()">重置</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
