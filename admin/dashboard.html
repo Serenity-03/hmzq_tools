@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMZQ - 流量统计看板</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f7;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .stat-card {
+            background: #eef2f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-label {
+            font-size: 1.1em;
+            color: #7f8c8d;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .note {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 HMZQ 流量统计看板</h1>
+        
+        <div class="stat-card">
+            <span class="stat-label">全站总访问量 (PV)</span>
+            <span class="stat-value" id="busuanzi_value_site_pv">...</span>
+        </div>
+        
+        <div class="stat-card">
+            <span class="stat-label">全站总访客数 (UV)</span>
+            <span class="stat-value" id="busuanzi_value_site_uv">...</span>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-label">当前页面访问量</span>
+            <span class="stat-value" id="busuanzi_value_page_pv">...</span>
+        </div>
+
+        <div class="note">
+            <strong>说明：</strong><br>
+            此数据由“不蒜子 (Busuanzi)”服务提供。<br>
+            PV (Page View): 页面浏览量，每刷新一次页面计算一次。<br>
+            UV (Unique Visitor): 独立访客数，同一设备/IP在24小时内访问只计算一次。<br>
+            <br>
+            <em>注意：本页面仅用于本地查看或管理员查看，不建议公开链接。</em>
+        </div>
+    </div>
+
+    <!-- Busuanzi Script -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- Hide elements initially to avoid flicker, Busuanzi will populate them -->
+    <span id="busuanzi_container_site_pv" style="display:none"></span>
+    <span id="busuanzi_container_site_uv" style="display:none"></span>
+    <span id="busuanzi_container_page_pv" style="display:none"></span>
+</body>
+</html>
