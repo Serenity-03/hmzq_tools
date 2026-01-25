@@ -5,157 +5,361 @@ const result_toString = ["", "第一横行", "第二横行", "第三横行", "�
 document.addEventListener('DOMContentLoaded', () => {
     const inputs = document.querySelectorAll('.grid-cell');
     inputs.forEach(input => {
-        input.addEventListener('input', calculate);
+        input.addEventListener('input', () => {
+             // Debounce slightly to allow UI to update if we add heavy calc
+             setTimeout(updateGameState, 10);
+        });
     });
-    calculate();
+    updateGameState();
 });
 
 function resetGrid() {
     const inputs = document.querySelectorAll('.grid-cell');
     inputs.forEach(input => input.value = '');
-    calculate();
+    updateGameState();
 }
 
-function calculate() {
-    let grid = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; // 1-based indexing for rows/cols to match logic easily
-    let isRevealed = new Array(15).fill(false);
-    let Parti = new Array(9).fill(0.0);
+function updateGameState() {
+    const { grid, isRevealed, notRevealed, count } = readGrid();
+    
+    // Update UI for remaining numbers
+    const remContainer = document.getElementById('remaining-numbers');
+    remContainer.innerHTML = notRevealed.map(n => `<span class="rem-num">${n}</span>`).join('');
 
-    // Read Input
+    // Clear previous recommendations and EV displays
+    document.querySelectorAll('.grid-cell').forEach(el => el.classList.remove('recommend-scratch'));
+    document.querySelectorAll('.row-result, .col-result, .diag-result').forEach(el => el.classList.remove('best-choice'));
+    document.querySelectorAll('.ev-display').forEach(el => el.innerText = '');
+    document.getElementById('recommendation').innerText = '';
+
+    // Calculate line expectations (always shown)
+    const lineExpectations = calculateAllLinesExpectation(grid, isRevealed, notRevealed);
+    displayLineExpectations(lineExpectations);
+
+    // Decision Logic
+    const statusEl = document.getElementById('step-status');
+
+    if (count === 0) {
+        statusEl.innerText = "第一阶段：请录入系统自动刮开的第 1 个格子";
+        statusEl.style.color = '#333';
+    } else if (count < 4) {
+        const movesLeft = 4 - count;
+        statusEl.innerText = `第二阶段：系统推荐最优方案，请继续刮开 ${movesLeft} 个格子`;
+        statusEl.style.color = '#d35400';
+        
+        setTimeout(() => {
+            const { bestMove, allEVs } = getBestNextMove(grid, isRevealed, notRevealed, movesLeft);
+            
+            // Display EVs for all unknown cells
+            allEVs.forEach(evItem => {
+                const evEl = document.getElementById(`ev-${evItem.r}-${evItem.c}`);
+                if (evEl) {
+                    if (evItem.ev === -9999) {
+                        evEl.innerText = "避险";
+                        evEl.style.color = "red";
+                    } else {
+                        evEl.innerText = evItem.ev.toFixed(0);
+                        evEl.style.color = "";
+                    }
+                }
+            });
+
+            if (bestMove) {
+                const cellId = `cell-${bestMove.r}-${bestMove.c}`;
+                document.getElementById(cellId).classList.add('recommend-scratch');
+                document.getElementById('recommendation').innerText = `建议刮开：${bestMove.r}行${bestMove.c}列 (预估价值: ${bestMove.ev.toFixed(1)})`;
+            }
+        }, 10);
+
+    } else {
+        statusEl.innerText = `第三阶段：次数用尽，请选择期望值最高的线路`;
+        statusEl.style.color = '#27ae60';
+
+        // Recommend Selection
+        let maxP = -1;
+        let maxIndex = -1;
+        for(let i=1; i<=8; i++) {
+            if(lineExpectations[i] > maxP) {
+                maxP = lineExpectations[i];
+                maxIndex = i;
+            }
+        }
+
+        if(maxIndex !== -1) {
+            document.getElementById('recommendation').innerText = `建议选择：${result_toString[maxIndex]} (期望: ${maxP.toFixed(1)})`;
+            // Highlight best line
+            if(maxIndex <= 3) document.getElementById(`res-row-${maxIndex}`).classList.add('best-choice');
+            else if(maxIndex <= 6) document.getElementById(`res-col-${maxIndex-3}`).classList.add('best-choice');
+            else document.getElementById(`res-diag-${maxIndex-6}`).classList.add('best-choice');
+        }
+    }
+}
+
+function readGrid() {
+    let grid = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+    let isRevealed = new Array(15).fill(false);
+    let count = 0;
+
     for(let i=1; i<=3; i++) {
         for(let j=1; j<=3; j++) {
             const val = parseInt(document.getElementById(`cell-${i}-${j}`).value) || 0;
             if(val >= 1 && val <= 9) {
                 grid[i][j] = val;
-                isRevealed[val] = true;
+                if (!isRevealed[val]) { // Avoid double counting if user enters dupes (invalid state but handle safely)
+                    isRevealed[val] = true;
+                    count++;
+                }
             } else {
                 grid[i][j] = 0;
             }
         }
     }
 
-    // Determine Remaining Numbers
     let notRevealed = [];
     for(let i=1; i<=9; i++) {
         if(!isRevealed[i]) {
             notRevealed.push(i);
         }
     }
+
+    return { grid, isRevealed, notRevealed, count };
+}
+
+// ---- Core Calculation Logic ----
+
+function calculateAllLinesExpectation(grid, isRevealed, notRevealed) {
+    let Parti = new Array(9).fill(0.0);
     
-    // Update UI for remaining numbers
-    const remContainer = document.getElementById('remaining-numbers');
-    remContainer.innerHTML = notRevealed.map(n => `<span class="rem-num">${n}</span>`).join('');
-
-    const cnt = notRevealed.length;
-
-    // Helper function to calculate expectation for a line
-    function calculateLineExpectation(cells) {
-        let unknowns = 0;
-        let sum = 0;
-        cells.forEach(val => {
-            if(val === 0) unknowns++;
-            else sum += val;
-        });
-
-        if(unknowns === 0) return reward[sum];
-
-        let totalExpectation = 0;
-
-        // Simulate all combinations for unknowns
-        // If unknowns > 0, we pick 'unknowns' numbers from 'notRevealed'
-        // Since the logic in original code was specific for 1, 2, 3 unknowns with specific probabilities (1/cnt, etc.)
-        // We will implement a general permutation approach or specific cases as per original code structure
-        
-        // General logic:
-        // Expected Value = Sum(Prob(Combination) * Reward(Sum + CombinationSum))
-        
-        // Case 1: 1 Unknown
-        if(unknowns === 1) {
-            for(let j=0; j<cnt; j++) {
-                // Prob of picking notRevealed[j] is 1/cnt
-                totalExpectation += (1.0/cnt) * reward[sum + notRevealed[j]];
-            }
-        }
-        // Case 2: 2 Unknowns
-        else if(unknowns === 2) {
-            if(cnt < 2) return 0; // Should not happen if inputs are valid
-            for(let j=0; j<cnt; j++) {
-                for(let k=0; k<cnt; k++) {
-                    if(j === k) continue;
-                    // Prob of picking j then k: (1/cnt) * (1/(cnt-1))
-                    // Wait, order doesn't matter for sum, but matters for probability calculation flow
-                    // Permutations of size 2 from cnt: cnt * (cnt-1)
-                    // Prob of each pair {a, b} is 1 / (cnt * (cnt-1)/2) ? No.
-                    // Let's stick to the loop logic:
-                    // P(first=j) = 1/cnt
-                    // P(second=k | first=j) = 1/(cnt-1)
-                    // Joint P = 1 / (cnt * (cnt-1))
-                    totalExpectation += (1.0 / (cnt * (cnt-1))) * reward[sum + notRevealed[j] + notRevealed[k]];
-                }
-            }
-        }
-        // Case 3: 3 Unknowns
-        else if(unknowns === 3) {
-            if(cnt < 3) return 0;
-            for(let j=0; j<cnt; j++) {
-                for(let k=0; k<cnt; k++) {
-                    if(j === k) continue;
-                    for(let l=0; l<cnt; l++) {
-                        if(l === j || l === k) continue;
-                         // P = 1 / (cnt * (cnt-1) * (cnt-2))
-                        totalExpectation += (1.0 / (cnt * (cnt-1) * (cnt-2))) * reward[sum + notRevealed[j] + notRevealed[k] + notRevealed[l]];
-                    }
-                }
-            }
-        }
-
-        return totalExpectation;
-    }
-
     // Rows
     for(let i=1; i<=3; i++) {
         let line = [grid[i][1], grid[i][2], grid[i][3]];
-        Parti[i] = calculateLineExpectation(line);
-        document.getElementById(`res-row-${i}`).innerText = Parti[i].toFixed(1);
+        Parti[i] = calculateLineExpectation(line, notRevealed);
     }
-
     // Cols
     for(let i=1; i<=3; i++) {
         let line = [grid[1][i], grid[2][i], grid[3][i]];
-        Parti[i+3] = calculateLineExpectation(line);
-        document.getElementById(`res-col-${i}`).innerText = Parti[i+3].toFixed(1);
+        Parti[i+3] = calculateLineExpectation(line, notRevealed);
     }
-
-    // Diagonals
+    // Diags
     let diag1 = [grid[1][1], grid[2][2], grid[3][3]];
-    Parti[7] = calculateLineExpectation(diag1);
-    document.getElementById(`val-diag-1`).innerText = Parti[7].toFixed(1);
-
+    Parti[7] = calculateLineExpectation(diag1, notRevealed);
+    
     let diag2 = [grid[1][3], grid[2][2], grid[3][1]];
-    Parti[8] = calculateLineExpectation(diag2);
+    Parti[8] = calculateLineExpectation(diag2, notRevealed);
+
+    return Parti;
+}
+
+function displayLineExpectations(Parti) {
+    for(let i=1; i<=3; i++) document.getElementById(`res-row-${i}`).innerText = Parti[i].toFixed(1);
+    for(let i=1; i<=3; i++) document.getElementById(`res-col-${i}`).innerText = Parti[i+3].toFixed(1);
+    document.getElementById(`val-diag-1`).innerText = Parti[7].toFixed(1);
     document.getElementById(`val-diag-2`).innerText = Parti[8].toFixed(1);
+}
 
-    // Find Best
-    let maxP = -1;
-    let maxIndex = -1;
-    for(let i=1; i<=8; i++) {
-        // Reset styles
-        if(i <= 3) document.getElementById(`res-row-${i}`).classList.remove('best-choice');
-        else if(i <= 6) document.getElementById(`res-col-${i-3}`).classList.remove('best-choice');
-        else document.getElementById(`res-diag-${i-6}`).classList.remove('best-choice');
+function calculateLineExpectation(cells, notRevealed) {
+    let unknowns = 0;
+    let sum = 0;
+    cells.forEach(val => {
+        if(val === 0) unknowns++;
+        else sum += val;
+    });
 
-        if(Parti[i] > maxP) {
-            maxP = Parti[i];
-            maxIndex = i;
+    if(unknowns === 0) return reward[sum];
+
+    let totalExpectation = 0;
+    const cnt = notRevealed.length;
+
+    if(unknowns === 1) {
+        for(let j=0; j<cnt; j++) {
+            totalExpectation += (1.0/cnt) * reward[sum + notRevealed[j]];
+        }
+    }
+    else if(unknowns === 2) {
+        if(cnt < 2) return 0;
+        // Permutations of 2 from cnt: P(cnt, 2) = cnt * (cnt-1)
+        // Each pair (a,b) has prob 1/(cnt*(cnt-1))
+        // But since a+b = b+a, we can iterate combinations and multiply by 2?
+        // Or just iterate ordered pairs.
+        for(let j=0; j<cnt; j++) {
+            for(let k=0; k<cnt; k++) {
+                if(j === k) continue;
+                totalExpectation += (1.0 / (cnt * (cnt-1))) * reward[sum + notRevealed[j] + notRevealed[k]];
+            }
+        }
+    }
+    else if(unknowns === 3) {
+        if(cnt < 3) return 0;
+        for(let j=0; j<cnt; j++) {
+            for(let k=0; k<cnt; k++) {
+                if(j === k) continue;
+                for(let l=0; l<cnt; l++) {
+                    if(l === j || l === k) continue;
+                    totalExpectation += (1.0 / (cnt * (cnt-1) * (cnt-2))) * reward[sum + notRevealed[j] + notRevealed[k] + notRevealed[l]];
+                }
+            }
+        }
+    }
+    return totalExpectation;
+}
+
+// ---- Expectimax Search ----
+
+// Returns { bestMove: { r, c, ev }, allEVs: [{r,c,ev}] }
+function getBestNextMove(grid, isRevealed, notRevealed, movesLeft) {
+    let bestEV = -1;
+    let bestMove = null;
+    let allEVs = [];
+
+    // Identify all unknown cells
+    let unknownCells = [];
+    for(let i=1; i<=3; i++) {
+        for(let j=1; j<=3; j++) {
+            if(grid[i][j] === 0) {
+                unknownCells.push({r: i, c: j});
+            }
         }
     }
 
-    if(maxIndex !== -1) {
-        document.getElementById('recommendation').innerText = `${result_toString[maxIndex]} (期望: ${maxP.toFixed(1)})`;
+    // Available numbers
+    const N = notRevealed.length;
+    const prob = 1.0 / N;
+
+    // For each unknown cell, calculate EV of scratching it
+    for (let cell of unknownCells) {
+        // Anti-Cheat Strategy: Check if this cell completes a potential 1-2-3 line
+        // Only necessary if 1, 2, 3 are NOT all revealed yet.
+        // If 1, 2, 3 are already visible (even scattered), there is no hidden 1-2-3 line to protect.
+        const targets = [1, 2, 3];
+        const allTargetsRevealed = targets.every(t => isRevealed[t]);
         
-        // Highlight best
-        if(maxIndex <= 3) document.getElementById(`res-row-${maxIndex}`).classList.add('best-choice');
-        else if(maxIndex <= 6) document.getElementById(`res-col-${maxIndex-3}`).classList.add('best-choice');
-        else document.getElementById(`res-diag-${maxIndex-6}`).classList.add('best-choice');
+        if (!allTargetsRevealed && isRiskyCell(grid, cell.r, cell.c)) {
+            allEVs.push({r: cell.r, c: cell.c, ev: -9999, note: "Risky"});
+            continue; // Skip this cell for recommendation
+        }
+
+        let currentCellEV = 0;
+
+        for (let k = 0; k < N; k++) {
+            const val = notRevealed[k];
+            
+            // Apply move
+            grid[cell.r][cell.c] = val;
+            isRevealed[val] = true;
+            const nextNotRevealed = notRevealed.filter((_, idx) => idx !== k);
+
+            const res = solve(grid, isRevealed, nextNotRevealed, movesLeft - 1);
+            currentCellEV += prob * res.ev;
+
+            // Backtrack
+            grid[cell.r][cell.c] = 0;
+            isRevealed[val] = false;
+        }
+
+        allEVs.push({r: cell.r, c: cell.c, ev: currentCellEV});
+
+        if (currentCellEV > bestEV) {
+            bestEV = currentCellEV;
+            bestMove = {r: cell.r, c: cell.c, ev: currentCellEV};
+        }
     }
+
+    return { bestMove, allEVs };
+}
+
+// Check if revealing (r, c) might expose the 3rd number of a {1, 2, 3} line
+function isRiskyCell(grid, r, c) {
+    const targets = [1, 2, 3];
+    
+    // Helper to check if a set of values contains exactly 2 distinct numbers from targets
+    function checkLine(vals) {
+        let found = 0;
+        let hasOther = false;
+        vals.forEach(v => {
+            if (v !== 0) {
+                if (targets.includes(v)) found++;
+                else hasOther = true;
+            }
+        });
+        // Risk condition: The line has 2 numbers from {1,2,3} AND no other numbers (the 3rd is the current empty cell)
+        return found === 2 && !hasOther;
+    }
+
+    // Check Row
+    if (checkLine([grid[r][1], grid[r][2], grid[r][3]])) return true;
+
+    // Check Col
+    if (checkLine([grid[1][c], grid[2][c], grid[3][c]])) return true;
+
+    // Check Diagonals
+    if (r === c) {
+        if (checkLine([grid[1][1], grid[2][2], grid[3][3]])) return true;
+    }
+    if (r + c === 4) {
+        if (checkLine([grid[1][3], grid[2][2], grid[3][1]])) return true;
+    }
+
+    return false;
+}
+
+function solve(grid, isRevealed, notRevealed, movesRemaining) {
+    // Base Case: No moves left, we must choose a line.
+    if (movesRemaining === 0) {
+        const lines = calculateAllLinesExpectation(grid, isRevealed, notRevealed);
+        let maxVal = 0;
+        for(let i=1; i<=8; i++) if(lines[i] > maxVal) maxVal = lines[i];
+        return { ev: maxVal };
+    }
+
+    // Recursive Step: Choose a cell to scratch
+    let maxEV = -1;
+    let bestCell = null;
+    
+    // Available cells
+    let cells = [];
+    for(let i=1; i<=3; i++) for(let j=1; j<=3; j++) if(grid[i][j] === 0) cells.push({r:i, c:j});
+
+    // Available numbers
+    const N = notRevealed.length;
+    const prob = 1.0 / N;
+
+    // For each candidate cell
+    for (let cell of cells) {
+        let currentCellEV = 0;
+
+        // Sum over all possible outcomes (numbers)
+        for (let k = 0; k < N; k++) {
+            const val = notRevealed[k];
+            
+            // Apply move
+            grid[cell.r][cell.c] = val;
+            isRevealed[val] = true;
+            // Create new notRevealed list (filter out val)
+            // Optimization: Swap remove? or just filter. Filter is O(N).
+            const nextNotRevealed = notRevealed.filter((_, idx) => idx !== k);
+
+            // Recurse
+            // Optimization: If movesRemaining is high (e.g. 3), this is slow.
+            // If movesRemaining == 3: 8 cells * 8 numbers * solve(2)
+            // solve(2): 7 cells * 7 numbers * solve(1)
+            // solve(1): 6 cells * 6 numbers * solve(0)
+            // Total leaf nodes: 64 * 49 * 36 = 112,896.
+            // Each leaf node does calculateAllLinesExpectation (constant time ~8 lines).
+            // 100k is acceptable for < 200ms delay.
+            
+            const res = solve(grid, isRevealed, nextNotRevealed, movesRemaining - 1);
+            currentCellEV += prob * res.ev;
+
+            // Backtrack
+            grid[cell.r][cell.c] = 0;
+            isRevealed[val] = false;
+        }
+
+        if (currentCellEV > maxEV) {
+            maxEV = currentCellEV;
+            bestCell = cell;
+        }
+    }
+
+    return { r: bestCell?.r, c: bestCell?.c, ev: maxEV };
 }

@@ -8,28 +8,57 @@
 </head>
 <body>
     <div class="container">
-        <h1>豪门九宫格 - 概率计算器</h1>
+        <h1>仙人掌 - 概率计算器</h1>
+        <div id="loading" class="loading-overlay">计算中...</div>
+        <div class="step-indicator" id="step-status">正在初始化...</div>
         <p>请输入已知格子的数字 (1-9)，未知格子留空或填0。</p>
         
         <div class="game-area">
             <div class="grid-container">
                 <!-- 3x3 Grid Inputs -->
                 <div class="grid-row">
-                    <input type="number" id="cell-1-1" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-1-2" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-1-3" min="0" max="9" class="grid-cell">
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-1-1" min="0" max="9" class="grid-cell">
+                        <span id="ev-1-1" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-1-2" min="0" max="9" class="grid-cell">
+                        <span id="ev-1-2" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-1-3" min="0" max="9" class="grid-cell">
+                        <span id="ev-1-3" class="ev-display"></span>
+                    </div>
                     <div class="row-result" id="res-row-1"></div>
                 </div>
                 <div class="grid-row">
-                    <input type="number" id="cell-2-1" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-2-2" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-2-3" min="0" max="9" class="grid-cell">
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-2-1" min="0" max="9" class="grid-cell">
+                        <span id="ev-2-1" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-2-2" min="0" max="9" class="grid-cell">
+                        <span id="ev-2-2" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-2-3" min="0" max="9" class="grid-cell">
+                        <span id="ev-2-3" class="ev-display"></span>
+                    </div>
                     <div class="row-result" id="res-row-2"></div>
                 </div>
                 <div class="grid-row">
-                    <input type="number" id="cell-3-1" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-3-2" min="0" max="9" class="grid-cell">
-                    <input type="number" id="cell-3-3" min="0" max="9" class="grid-cell">
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-3-1" min="0" max="9" class="grid-cell">
+                        <span id="ev-3-1" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-3-2" min="0" max="9" class="grid-cell">
+                        <span id="ev-3-2" class="ev-display"></span>
+                    </div>
+                    <div class="cell-wrapper">
+                        <input type="number" id="cell-3-3" min="0" max="9" class="grid-cell">
+                        <span id="ev-3-3" class="ev-display"></span>
+                    </div>
                     <div class="row-result" id="res-row-3"></div>
                 </div>
                 
