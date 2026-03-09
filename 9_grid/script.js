@@ -70,8 +70,18 @@ function updateGameState() {
 
             if (bestMove) {
                 const cellId = `cell-${bestMove.r}-${bestMove.c}`;
-                document.getElementById(cellId).classList.add('recommend-scratch');
+                const cellElement = document.getElementById(cellId);
+                cellElement.classList.add('recommend-scratch');
                 document.getElementById('recommendation').innerText = `建议刮开：${bestMove.r}行${bestMove.c}列 (预估价值: ${bestMove.ev.toFixed(1)})`;
+                
+                // Auto-focus logic
+                const autoFocus = document.getElementById('auto-focus-toggle').checked;
+                if (autoFocus) {
+                    // Slight delay to ensure UI updates and focus feels natural
+                    setTimeout(() => {
+                        cellElement.focus();
+                    }, 50);
+                }
             }
         }, 10);
 
