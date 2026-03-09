@@ -76,10 +76,11 @@ function updateGameState() {
                 
                 // Auto-focus logic
                 const autoFocus = document.getElementById('auto-focus-toggle').checked;
-                if (autoFocus) {
+                if (autoFocus && cellElement) {
                     // Slight delay to ensure UI updates and focus feels natural
                     setTimeout(() => {
                         cellElement.focus();
+                        cellElement.select(); // Also select content if any (though usually empty)
                     }, 50);
                 }
             }
