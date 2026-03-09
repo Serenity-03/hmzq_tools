@@ -142,7 +142,11 @@ function displayProbabilityBreakdown(lineIndex, grid, notRevealed, elementId) {
         }
     });
     
-    document.getElementById('probability-breakdown').innerHTML = html;
+    // Use the elementId parameter instead of hardcoding 'probability-breakdown'
+    const targetElement = document.getElementById(elementId) || document.getElementById('probability-breakdown');
+    if (targetElement) {
+        targetElement.innerHTML = html;
+    }
 }
 
 function calculateLineProbabilities(cells, notRevealed) {
