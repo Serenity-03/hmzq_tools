@@ -267,3 +267,9 @@ button:hover {
 .prob-val {
     color: #7f8c8d;
 }
+.highlight-alt {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #7f8c8d; /* Grey for alternate */
+    margin-bottom: 5px;
+}

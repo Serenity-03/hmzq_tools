@@ -31,6 +31,10 @@ function updateGameState() {
     document.querySelectorAll('.row-result, .col-result, .diag-result').forEach(el => el.classList.remove('best-choice'));
     document.querySelectorAll('.ev-display').forEach(el => el.innerText = '');
     document.getElementById('recommendation').innerText = '';
+    document.getElementById('probability-breakdown').innerHTML = '';
+    document.getElementById('alternate-recommendation-container').style.display = 'none';
+    document.getElementById('alternate-recommendation').innerText = '';
+    document.getElementById('alternate-probability-breakdown').innerHTML = '';
 
     // Calculate line expectations (always shown)
     const lineExpectations = calculateAllLinesExpectation(grid, isRevealed, notRevealed);
@@ -75,30 +79,39 @@ function updateGameState() {
         statusEl.innerText = `第三阶段：次数用尽，请选择期望值最高的线路`;
         statusEl.style.color = '#27ae60';
 
-        // Recommend Selection
-        let maxP = -1;
-        let maxIndex = -1;
+        // Find best and second best lines
+        let sortedLines = [];
         for(let i=1; i<=8; i++) {
-            if(lineExpectations[i] > maxP) {
-                maxP = lineExpectations[i];
-                maxIndex = i;
-            }
+            sortedLines.push({ index: i, ev: lineExpectations[i] });
+        }
+        sortedLines.sort((a, b) => b.ev - a.ev);
+
+        const bestLine = sortedLines[0];
+        const secondBestLine = sortedLines[1];
+
+        if(bestLine) {
+            document.getElementById('recommendation').innerText = `建议选择：${result_toString[bestLine.index]} (期望: ${bestLine.ev.toFixed(1)})`;
+            highlightLine(bestLine.index, 'best-choice');
+            displayProbabilityBreakdown(bestLine.index, grid, notRevealed, 'probability-breakdown');
         }
 
-        if(maxIndex !== -1) {
-            document.getElementById('recommendation').innerText = `建议选择：${result_toString[maxIndex]} (期望: ${maxP.toFixed(1)})`;
-            // Highlight best line
-            if(maxIndex <= 3) document.getElementById(`res-row-${maxIndex}`).classList.add('best-choice');
-            else if(maxIndex <= 6) document.getElementById(`res-col-${maxIndex-3}`).classList.add('best-choice');
-            else document.getElementById(`res-diag-${maxIndex-6}`).classList.add('best-choice');
-
-            // Show probability breakdown for the best line
-            displayProbabilityBreakdown(maxIndex, grid, notRevealed);
+        // Show alternate if it's close enough
+        if (secondBestLine && bestLine && (bestLine.ev - secondBestLine.ev < 300)) {
+            const altContainer = document.getElementById('alternate-recommendation-container');
+            altContainer.style.display = 'block';
+            document.getElementById('alternate-recommendation').innerText = `备选方案：${result_toString[secondBestLine.index]} (期望: ${secondBestLine.ev.toFixed(1)})`;
+            displayProbabilityBreakdown(secondBestLine.index, grid, notRevealed, 'alternate-probability-breakdown');
         }
     }
 }
 
-function displayProbabilityBreakdown(lineIndex, grid, notRevealed) {
+function highlightLine(lineIndex, className) {
+    if(lineIndex <= 3) document.getElementById(`res-row-${lineIndex}`).classList.add(className);
+    else if(lineIndex <= 6) document.getElementById(`res-col-${lineIndex-3}`).classList.add(className);
+    else document.getElementById(`res-diag-${lineIndex-6}`).classList.add(className);
+}
+
+function displayProbabilityBreakdown(lineIndex, grid, notRevealed, elementId) {
     let cells = [];
     if (lineIndex <= 3) { // Row
         cells = [grid[lineIndex][1], grid[lineIndex][2], grid[lineIndex][3]];
