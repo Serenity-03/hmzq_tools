@@ -246,8 +246,6 @@ button:hover {
     margin-top: 10px;
     font-size: 0.9em;
     color: #555;
-    max-height: 200px;
-    overflow-y: auto;
 }
 
 .prob-item {
