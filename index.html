@@ -9,6 +9,10 @@
 </head>
 <body>
     <div class="container">
+        <div class="top-nav">
+            <button id="update-log-btn" class="nav-btn">📅 更新日志</button>
+        </div>
+
         <header>
             <h1>HMZQ Tools</h1>
             <p>实用游戏辅助工具集合</p>
@@ -31,30 +35,6 @@
             </div>
         </div>
 
-        <div class="update-log-container">
-            <details>
-                <summary>📅 更新日志</summary>
-                <div class="log-content">
-                    <div class="log-entry">
-                        <span class="log-date">2026-03-09</span>
-                        <p>新增“豪门九宫格”备选方案推荐功能，展示概率分布。</p>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-date">2026-03-09</span>
-                        <p>优化移动端显示效果，适配窄屏设备。</p>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-date">2026-03-09</span>
-                        <p>接入 Busuanzi.cc 统计服务，支持今日访问量统计。</p>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-date">2026-03-09</span>
-                        <p>工具箱主页上线，集成九宫格概率计算器。</p>
-                    </div>
-                </div>
-            </details>
-        </div>
-
         <footer>
             <p>&copy; 2026 HMZQ Tools. All rights reserved.</p>
             <div style="font-size: 0.8rem; margin-top: 10px; opacity: 0.8; line-height: 1.6; color: #7f8c8d;">
@@ -64,6 +44,53 @@
             </div>
         </footer>
     </div>
+
+    <!-- Update Log Modal -->
+    <div id="log-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>📅 更新日志</h2>
+            <div class="log-content">
+                <div class="log-entry">
+                    <span class="log-date">2026-03-09</span>
+                    <p>新增“豪门九宫格”备选方案推荐功能，展示概率分布。</p>
+                </div>
+                <div class="log-entry">
+                    <span class="log-date">2026-03-09</span>
+                    <p>优化移动端显示效果，适配窄屏设备。</p>
+                </div>
+                <div class="log-entry">
+                    <span class="log-date">2026-03-09</span>
+                    <p>接入 Busuanzi.cc 统计服务，支持今日访问量统计。</p>
+                </div>
+                <div class="log-entry">
+                    <span class="log-date">2026-03-09</span>
+                    <p>工具箱主页上线，集成九宫格概率计算器。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal Logic
+        const modal = document.getElementById("log-modal");
+        const btn = document.getElementById("update-log-btn");
+        const span = document.getElementsByClassName("close-modal")[0];
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
     <script src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js" defer></script>
 </body>
 </html>
