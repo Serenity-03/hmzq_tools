@@ -91,6 +91,56 @@ header p {
     border-color: transparent;
 }
 
+.update-log-container {
+    max-width: 800px;
+    margin: 60px auto 0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+details summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--primary-color);
+    outline: none;
+    list-style: none; /* Hide default arrow in some browsers */
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+.log-content {
+    margin-top: 15px;
+    padding-left: 10px;
+    border-left: 2px solid #eee;
+}
+
+.log-entry {
+    margin-bottom: 15px;
+}
+
+.log-entry:last-child {
+    margin-bottom: 0;
+}
+
+.log-date {
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.log-entry p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+}
+
 footer {
     text-align: center;
     margin-top: 80px;
