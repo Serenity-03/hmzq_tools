@@ -242,3 +242,30 @@ button:hover {
     color: #d35400;
     font-weight: bold;
 }
+.prob-list {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.prob-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.prob-item:last-child {
+    border-bottom: none;
+}
+
+.prob-reward {
+    font-weight: bold;
+    color: #2980b9;
+}
+
+.prob-val {
+    color: #7f8c8d;
+}

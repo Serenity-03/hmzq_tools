@@ -91,8 +91,100 @@ function updateGameState() {
             if(maxIndex <= 3) document.getElementById(`res-row-${maxIndex}`).classList.add('best-choice');
             else if(maxIndex <= 6) document.getElementById(`res-col-${maxIndex-3}`).classList.add('best-choice');
             else document.getElementById(`res-diag-${maxIndex-6}`).classList.add('best-choice');
+
+            // Show probability breakdown for the best line
+            displayProbabilityBreakdown(maxIndex, grid, notRevealed);
         }
     }
+}
+
+function displayProbabilityBreakdown(lineIndex, grid, notRevealed) {
+    let cells = [];
+    if (lineIndex <= 3) { // Row
+        cells = [grid[lineIndex][1], grid[lineIndex][2], grid[lineIndex][3]];
+    } else if (lineIndex <= 6) { // Col
+        let col = lineIndex - 3;
+        cells = [grid[1][col], grid[2][col], grid[3][col]];
+    } else if (lineIndex === 7) { // Diag 1
+        cells = [grid[1][1], grid[2][2], grid[3][3]];
+    } else { // Diag 2
+        cells = [grid[1][3], grid[2][2], grid[3][1]];
+    }
+
+    const probs = calculateLineProbabilities(cells, notRevealed);
+    
+    // Sort by probability desc
+    const sortedRewards = Object.keys(probs).sort((a, b) => probs[b] - probs[a]);
+    
+    let html = '<div style="margin-top:5px; font-weight:bold; color:#333;">可能结果分布：</div>';
+    sortedRewards.forEach(r => {
+        const p = probs[r];
+        if (p > 0.001) { // Hide very small probabilities
+            html += `
+                <div class="prob-item">
+                    <span class="prob-reward">💎 ${r}</span>
+                    <span class="prob-val">${(p * 100).toFixed(1)}%</span>
+                </div>
+            `;
+        }
+    });
+    
+    document.getElementById('probability-breakdown').innerHTML = html;
+}
+
+function calculateLineProbabilities(cells, notRevealed) {
+    let unknowns = 0;
+    let sum = 0;
+    cells.forEach(val => {
+        if(val === 0) unknowns++;
+        else sum += val;
+    });
+
+    let probMap = {};
+
+    if(unknowns === 0) {
+        let r = reward[sum];
+        probMap[r] = 1.0;
+        return probMap;
+    }
+
+    const cnt = notRevealed.length;
+
+    if(unknowns === 1) {
+        for(let j=0; j<cnt; j++) {
+            let r = reward[sum + notRevealed[j]];
+            probMap[r] = (probMap[r] || 0) + (1.0/cnt);
+        }
+    }
+    else if(unknowns === 2) {
+        if(cnt < 2) return {};
+        // 2 unknowns: Permutations of 2 from cnt
+        // Total permutations = cnt * (cnt-1)
+        // Each has prob 1 / (cnt * (cnt-1))
+        const p = 1.0 / (cnt * (cnt-1));
+        for(let j=0; j<cnt; j++) {
+            for(let k=0; k<cnt; k++) {
+                if(j === k) continue;
+                let r = reward[sum + notRevealed[j] + notRevealed[k]];
+                probMap[r] = (probMap[r] || 0) + p;
+            }
+        }
+    }
+    else if(unknowns === 3) {
+        if(cnt < 3) return {};
+        const p = 1.0 / (cnt * (cnt-1) * (cnt-2));
+        for(let j=0; j<cnt; j++) {
+            for(let k=0; k<cnt; k++) {
+                if(j === k) continue;
+                for(let l=0; l<cnt; l++) {
+                    if(l === j || l === k) continue;
+                    let r = reward[sum + notRevealed[j] + notRevealed[k] + notRevealed[l]];
+                    probMap[r] = (probMap[r] || 0) + p;
+                }
+            }
+        }
+    }
+    return probMap;
 }
 
 function readGrid() {
