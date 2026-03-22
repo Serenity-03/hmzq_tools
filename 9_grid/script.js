@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     updateGameState();
+
+    // Global Esc key listener for quick reset
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            resetGrid();
+            // Remove focus from any active input to clearly indicate reset
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
+        }
+    });
 });
 
 function resetGrid() {
